@@ -1,21 +1,26 @@
-import express, { type NextFunction, type Request, type Response } from 'express';
-import { pool } from './db/pool.ts';
+import cookieParser from "cookie-parser";
+import express from "express";
+import { pool } from "./db/pool.ts";
+import { errorHandler } from "./shared/errors/error-handler.ts";
+import { sendSuccess } from "./shared/http/api-response.ts";
+import { notFound } from "./shared/middleware/not-found.ts";
+import { requestId } from "./shared/middleware/request-id.ts";
+import { authRouter } from "./modules/auth/auth.routes.ts";
+import { venueRouter } from './modules/venues/venue.routes.ts';
 
 export const app = express();
 
+app.use(requestId);
 app.use(express.json());
+app.use(cookieParser());
 
-app.get('/health', async (_req: Request, res: Response) => {
-  await pool.query('SELECT 1');
-  res.json({ status: 'ok', db: 'up' });
+app.get("/health", async (req, res) => {
+  await pool.query("SELECT 1");
+  sendSuccess(req, res, { data: { db: "up" }, message: "Service is healthy." });
 });
 
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
-});
+app.use("/auth", authRouter);
+app.use('/venues', venueRouter);
 
-// Express 5 sends errors from async handlers here automatically
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
-  res.status(500).json({ error: { code: 'INTERNAL', message: 'Something went wrong' } });
-});
+app.use(notFound);
+app.use(errorHandler);

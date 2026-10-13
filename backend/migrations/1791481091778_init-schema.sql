@@ -1,7 +1,7 @@
 -- Up Migration
 
 CREATE TABLE users (
-  id            SERIAL PRIMARY KEY,
+  id            integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   email         TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   name          TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE refresh_tokens (
-  id         SERIAL PRIMARY KEY,
+  id         integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token_hash TEXT NOT NULL UNIQUE,
   expires_at TIMESTAMPTZ NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE refresh_tokens (
 );
 
 CREATE TABLE venues (
-  id          SERIAL PRIMARY KEY,
+  id          integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   owner_id    INTEGER NOT NULL REFERENCES users(id),
   name        TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
@@ -35,7 +35,7 @@ CREATE TABLE venues (
 );
 
 CREATE TABLE venue_slots (
-  id          SERIAL PRIMARY KEY,
+  id          integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   venue_id    INTEGER NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
   starts_at   TIMESTAMPTZ NOT NULL,
   ends_at     TIMESTAMPTZ NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE venue_slots (
 );
 
 CREATE TABLE bookings (
-  id           SERIAL PRIMARY KEY,
+  id           integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   slot_id      INTEGER NOT NULL REFERENCES venue_slots(id),
   customer_id  INTEGER NOT NULL REFERENCES users(id),
   status       TEXT NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed','cancelled')),
