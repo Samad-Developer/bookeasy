@@ -72,6 +72,14 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
       });
       return;
     }
+    if (error.code === "23P01") {
+      sendError(req, res, {
+        statusCode: 409,
+        code: "EXCLUSION_CONFLICT",
+        message: "Resource conflicts with an existing one.",
+      });
+      return;
+    }
     if (error.code === "23514") {
       sendError(req, res, {
         statusCode: 422,

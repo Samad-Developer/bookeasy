@@ -1,14 +1,14 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // The single place that lists the allowed categories. Add new ones here.
 export const VENUE_CATEGORIES = [
-  'wedding_hall',
-  'party_lawn',
-  'conference_room',
-  'meeting_room',
-  'sports_arena',
-  'studio',
-  'other',
+  "wedding_hall",
+  "party_lawn",
+  "conference_room",
+  "meeting_room",
+  "sports_arena",
+  "studio",
+  "other",
 ] as const;
 
 // "  lAHore  " -> "Lahore", so the same city is always stored and searched the same way
@@ -22,7 +22,7 @@ const city = z
       .toLowerCase()
       .split(/\s+/)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' '),
+      .join(" "),
   );
 
 // The fields shared by "create" and "update". No defaults here: a default would
@@ -38,14 +38,16 @@ const venueFields = {
 
 export const createVenueSchema = z.object({
   ...venueFields,
-  description: venueFields.description.default(''), // only a new venue gets an empty description by default
+  description: venueFields.description.default(""), // only a new venue gets an empty description by default
 });
 
 export const updateVenueSchema = z
   .object(venueFields)
   .partial()
   .extend({ isActive: z.boolean().optional() })
-  .refine((data) => Object.keys(data).length > 0, { message: 'Send at least one field to update' });
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Send at least one field to update",
+  });
 
 export const venueIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -60,6 +62,7 @@ export const listVenuesQuerySchema = z.object({
   ...pagination,
   city: city.optional(),
   category: z.enum(VENUE_CATEGORIES).optional(),
+  q: z.string().trim().max(100).transform((value) => value || undefined).optional(),
 });
 
 export const paginationQuerySchema = z.object(pagination);

@@ -7,6 +7,7 @@ import { notFound } from "./shared/middleware/not-found.ts";
 import { requestId } from "./shared/middleware/request-id.ts";
 import { authRouter } from "./modules/auth/auth.routes.ts";
 import { venueRouter } from './modules/venues/venue.routes.ts';
+import { slotRouter } from "./modules/slots/slot.routes.ts";
 
 export const app = express();
 
@@ -20,7 +21,8 @@ app.get("/health", async (req, res) => {
 });
 
 app.use("/auth", authRouter);
-app.use('/venues', venueRouter);
+app.use("/venues", venueRouter);
+app.use(slotRouter);
 
 app.use(notFound);
 app.use(errorHandler);
