@@ -8,6 +8,9 @@ import { requestId } from "./shared/middleware/request-id.ts";
 import { authRouter } from "./modules/auth/auth.routes.ts";
 import { venueRouter } from './modules/venues/venue.routes.ts';
 import { slotRouter } from "./modules/slots/slot.routes.ts";
+import { statsRouter } from "./modules/stats/stats.routes.ts";
+import { bookingRouter } from "./modules/bookings/booking.routes.ts";
+import { adminRouter } from "./modules/admin/admin.routes.ts";
 
 export const app = express();
 
@@ -23,6 +26,9 @@ app.get("/health", async (req, res) => {
 app.use("/auth", authRouter);
 app.use("/venues", venueRouter);
 app.use(slotRouter);
+app.use(bookingRouter);
+app.use('/stats', statsRouter); 
+app.use('/admin', adminRouter);
 
 app.use(notFound);
 app.use(errorHandler);

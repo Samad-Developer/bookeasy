@@ -56,7 +56,14 @@ export async function updateVenueById(id: number, changes: UpdateVenueInput, db:
   return toVenue(rows[0]);
 }
 
-type Filters = { city?: string; category?: string; ownerId?: number; search?: string; onlyActive: boolean };
+type Filters = {
+  city?: string;
+  category?: string;
+  ownerId?: number;
+  search?: string;
+  onlyActive: boolean; // true = hide deactivated venues (public pages)
+  isActive?: boolean; // exact filter, for the admin screen (only meaningful when onlyActive is false)
+};
 
 // Builds "WHERE ..." from the filters that were actually given
 function buildWhere(filters: Filters) {
@@ -65,6 +72,10 @@ function buildWhere(filters: Filters) {
   let searchParam: number | undefined; // position ($n) of the search text, reused for ranking
 
   if (filters.onlyActive) conditions.push('is_active = true');
+  if (filters.isActive !== undefined) {
+    params.push(filters.isActive);
+    conditions.push(`is_active = $${params.length}`);
+  }
   if (filters.ownerId !== undefined) {
     params.push(filters.ownerId);
     conditions.push(`owner_id = $${params.length}`);
@@ -93,10 +104,7 @@ export async function findVenues(filters: Filters, page: number, limit: number, 
   const { where, params, searchParam } = buildWhere(filters);
 
   // Best match first when searching; newest first otherwise
-  const orderBy =
-    searchParam === undefined
-      ? 'ORDER BY id DESC'
-      : `ORDER BY ts_rank(search, plainto_tsquery('english', $${searchParam})) DESC, id DESC`;
+  const orderBy = searchParam === undefined ? 'ORDER BY id DESC' : `ORDER BY ts_rank(search, plainto_tsquery('english', $${searchParam})) DESC, id DESC`;
 
   // Two separate queries so `total` is correct even when the requested page is past the end
   const listParams = [...params, limit, (page - 1) * limit];
