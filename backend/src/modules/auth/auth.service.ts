@@ -30,7 +30,10 @@ function signAccessToken(user: UserRow) {
 
 async function startSession(user: UserRow, db?: PoolClient): Promise<Session> {
   const refreshToken = randomBytes(48).toString("hex");
-  await repo.insertRefreshToken({ userId: user.id, tokenHash: sha256(refreshToken), days: REFRESH_DAYS }, db);
+  await repo.insertRefreshToken(
+    { userId: user.id, tokenHash: sha256(refreshToken), days: REFRESH_DAYS },
+    db,
+  );
 
   return {
     user: toPublicUser(user),
@@ -41,7 +44,7 @@ async function startSession(user: UserRow, db?: PoolClient): Promise<Session> {
 
 export async function signup(input: SignupInput): Promise<Session> {
   const passwordHash = await bcrypt.hash(input.password, 10);
-  
+
   try {
     // Create the user and the first refresh token together: both happen or neither does
     return await withTransaction(async (client) => {
@@ -70,8 +73,7 @@ export async function login(input: LoginInput): Promise<Session> {
       "Email or password is incorrect",
     );
   }
-  if (!user.is_active)
-    throw new AppError(403, "ACCOUNT_DISABLED", "This account is disabled");
+  if (!user.is_active) throw new AppError(403, "ACCOUNT_DISABLED", "This account is disabled");
   return startSession(user);
 }
 
@@ -80,7 +82,8 @@ export async function refresh(oldToken: string | undefined): Promise<Session> {
   if (!oldToken) throw new AppError(401, "NO_REFRESH_TOKEN", "Not logged in");
 
   const user = await repo.consumeRefreshToken(sha256(oldToken));
-  if (!user || !user.is_active) throw new AppError(401, "INVALID_REFRESH_TOKEN", "Please log in again");
+  if (!user || !user.is_active)
+    throw new AppError(401, "INVALID_REFRESH_TOKEN", "Please log in again");
 
   return startSession(user);
 }

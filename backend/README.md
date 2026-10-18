@@ -2,6 +2,16 @@
 
 A venue booking REST API. Owners list venues and time slots, customers book them, and admins manage users, venues and bookings.
 
+Request 
+→ trace id 
+→ logger 
+→ helmet 
+→ CORS 
+→ json parser 
+→ routes (+ rate limiter on login/signup) 
+→ ... 
+→ error handler
+
 **Stack:** Node.js, Express, TypeScript, PostgreSQL, Zod, JWT
 **Architecture:** Request → Validation (Zod) → Controller → Service → Repository → PostgreSQL → central error handler
 

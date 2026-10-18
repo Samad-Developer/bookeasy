@@ -4,6 +4,20 @@ import { ZodError } from "zod";
 import { sendError } from "../http/api-response.ts";
 import { AppError } from "./app-error.ts";
 
+// pg does not give these errors a nice class, so we recognise them by code or message
+function isDatabaseUnavailable(error: unknown): boolean {
+  const { code, message = "" } = error as { code?: string; message?: string };
+  return (
+    code === "ECONNREFUSED" ||
+    code === "ECONNRESET" ||
+    code === "ETIMEDOUT" ||
+    code === "57P01" || // database is shutting down
+    code === "53300" || // too many connections
+    message.includes("timeout exceeded when trying to connect") || // waited too long for a free pool connection
+    message.includes("Connection terminated")
+  );
+}
+
 export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
   // If the response already started, Express must close the connection itself
   if (res.headersSent) {
@@ -88,6 +102,30 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
       });
       return;
     }
+    // 57014 = the database cancelled a query that ran longer than statement_timeout
+    if (error.code === "57014") {
+      console.error(`[${req.traceId}] query timed out`, error.message);
+      sendError(req, res, {
+        statusCode: 503,
+        code: "DATABASE_TIMEOUT",
+        message: "The request took too long. Please try again.",
+      });
+      return;
+    }
+  }
+
+  // 4b. The database cannot be reached or the pool is exhausted: a temporary problem, not a bug in our code
+  if (isDatabaseUnavailable(error)) {
+    console.error(
+      `[${req.traceId}] database unavailable`,
+      (error as Error).message,
+    );
+    sendError(req, res, {
+      statusCode: 503,
+      code: "SERVICE_UNAVAILABLE",
+      message: "Service temporarily unavailable. Please try again.",
+    });
+    return;
   }
 
   // 5. Anything unexpected: log it with the trace id, hide details from the client

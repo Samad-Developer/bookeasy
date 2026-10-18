@@ -6,13 +6,12 @@ import type { Role } from "../types/express.d.ts";
 
 export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer "))
-    throw new AppError(401, "UNAUTHENTICATED", "Missing access token");
+  if (!header?.startsWith("Bearer ")) throw new AppError(401, "UNAUTHENTICATED", "Missing access token");
 
   try {
     const payload = jwt.verify(header.slice(7), env.JWT_ACCESS_SECRET) as jwt.JwtPayload;
-
     req.user = { id: Number(payload.sub), role: payload.role };
+
     next();
   } catch {
     throw new AppError(
