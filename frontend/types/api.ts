@@ -25,12 +25,6 @@ export type PaginationMeta = {
   totalPages: number;
 };
 
-export type ResponseMeta = {
-  timestamp: string;
-  traceId: string;
-  [key: string]: unknown; // endpoints can add more (for example pagination)
-};
-
 // Every successful response looks like this
 export type ApiSuccess<T> = {
   success: true;
@@ -48,4 +42,11 @@ export type ApiFailure = {
   data: null;
   error: { code: string; details: ErrorDetail[] };
   meta: ResponseMeta;
+};
+
+export type ResponseMeta = {
+  timestamp: string;
+  traceId: string;
+  pagination?: PaginationMeta; // list endpoints send this
+  [key: string]: unknown; // endpoints can add more
 };

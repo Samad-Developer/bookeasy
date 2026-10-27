@@ -1,9 +1,8 @@
 import type { Role } from '@/types/api';
 
 // Where each role lands after logging in, and which links its navbar shows.
-// (In Step 3 the customer's home becomes the venue list.)
 export const roleHome: Record<Role, string> = {
-  customer: '/bookings',
+  customer: '/venues',
   owner: '/owner',
   admin: '/admin',
 };
