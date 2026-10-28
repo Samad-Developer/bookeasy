@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getVenue } from '@/features/venues/api';
 import { SlotList } from '@/features/venues/components/slot-list';
-import { categoryLabel, type Venue } from '@/features/venues/types';
+import { VenueGallery } from '@/features/venues/components/vanue-gallery';
+import { categoryLabel, type VenueDetail } from '@/features/venues/types';
 import { ApiError } from '@/lib/api-client';
 import { formatCount } from '@/lib/format';
 
@@ -28,7 +29,7 @@ async function VenueDetail({ params }: { params: Promise<{ id: string }> }) {
   const venueId = Number(id);
   if (!/^\d+$/.test(id) || venueId < 1 || venueId > 2_147_483_647) notFound();
 
-  let venue: Venue;
+  let venue: VenueDetail;
   try {
     venue = await getVenue(venueId);
   } catch (error) {
@@ -43,6 +44,8 @@ async function VenueDetail({ params }: { params: Promise<{ id: string }> }) {
 
       <header className="space-y-4">
         <h1 className="text-3xl font-semibold tracking-tight">{venue.name}</h1>
+
+        <VenueGallery images={venue.images} name={venue.name} />
 
         <dl className="grid max-w-xl grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
           <dt className="text-muted-foreground">Type</dt>

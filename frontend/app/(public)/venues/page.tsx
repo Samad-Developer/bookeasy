@@ -27,7 +27,7 @@ export default function VenuesPage({ searchParams }: { searchParams: Promise<Raw
 async function VenuesContent({ searchParams }: { searchParams: Promise<RawSearchParams> }) {
   const search = parseVenueSearch(await searchParams);
   const { venues, pagination } = await listVenues(search);
-
+console.log('checking venues', venues)
   const filtersActive = hasActiveFilters(search);
   const filterParams = { q: search.q, city: search.city, category: search.category };
   const pageIsOutOfRange = pagination.total > 0 && venues.length === 0; // for example /venues?page=99

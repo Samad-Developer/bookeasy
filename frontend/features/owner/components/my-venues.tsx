@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { PageButtons } from '@/components/shared/page-buttons';
+import { VenuePhoto } from '@/components/shared/venue-photo';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useMyVenues } from '@/features/owner/hooks';
 import { categoryLabel } from '@/features/venues/types';
@@ -60,18 +61,21 @@ export function MyVenues() {
       <ul className={isFetching ? 'divide-y border-y opacity-60 transition-opacity' : 'divide-y border-y transition-opacity'}>
         {data.venues.map((venue) => (
           <li key={venue.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5">
-            <div className="min-w-0 space-y-1">
-              <h2 className="flex flex-wrap items-center gap-2 text-lg font-medium">
-                <Link href={`/owner/venues/${venue.id}/slots`} className="underline-offset-4 hover:underline">
-                  {venue.name}
-                </Link>
-                {!venue.isActive && (
-                  <span className="rounded-full border px-2.5 py-0.5 text-xs font-normal text-muted-foreground">Hidden</span>
-                )}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {categoryLabel(venue.category)} in {venue.city} · Capacity {formatCount(venue.capacity)}
-              </p>
+            <div className="flex min-w-0 items-center gap-4">
+              <VenuePhoto src={venue.coverThumbUrl} alt="" className="aspect-[4/3] w-20 shrink-0 sm:w-28" />
+              <div className="min-w-0 space-y-1">
+                <h2 className="flex flex-wrap items-center gap-2 text-lg font-medium">
+                  <Link href={`/owner/venues/${venue.id}/slots`} className="underline-offset-4 hover:underline">
+                    {venue.name}
+                  </Link>
+                  {!venue.isActive && (
+                    <span className="rounded-full border px-2.5 py-0.5 text-xs font-normal text-muted-foreground">Hidden</span>
+                  )}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {categoryLabel(venue.category)} in {venue.city} · Capacity {formatCount(venue.capacity)}
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Link href={`/owner/venues/${venue.id}/slots`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>

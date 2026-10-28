@@ -39,7 +39,20 @@ export type Venue = {
   capacity: number;
   isActive: boolean;
   createdAt: string;
+  coverImageUrl: string | null; // the first photo, full size. null when the venue has no photos
+  coverThumbUrl: string | null; // the same photo, small. Use this one on cards and lists
+  imageCount: number;
 };
+
+export type VenueImage = {
+  id: number;
+  url: string; // full size
+  thumbUrl: string; // small copy
+  position: number; // 0 = cover
+};
+
+// GET /venues/:id also returns every photo (lists only return the cover)
+export type VenueDetail = Venue & { images: VenueImage[] };
 
 export type Slot = {
   id: number;

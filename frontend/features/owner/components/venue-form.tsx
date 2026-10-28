@@ -2,15 +2,19 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { FormField } from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { applyServerError } from '@/features/auth/form-errors';
-import { useCreateVenue, useUpdateVenue } from '@/features/owner/hooks';
+import { ImagePicker } from '@/features/owner/components/image-picker';
+import { useCreateVenue, useUpdateVenue, useUploadImages } from '@/features/owner/hooks';
+import { MAX_IMAGES } from '@/features/owner/image-rules';
 import { toVenueInput, venueSchema, type VenueFormValues } from '@/features/owner/schemas';
 import { categoryLabel, VENUE_CATEGORIES, type Venue } from '@/features/venues/types';
+import { getErrorMessage } from '@/lib/api-client';
 
 const FIELDS = ['name', 'category', 'city', 'address', 'capacity', 'description'] as const;
 
@@ -22,7 +26,9 @@ export function VenueForm({ venue }: { venue?: Venue }) {
   const router = useRouter();
   const create = useCreateVenue();
   const update = useUpdateVenue(venue?.id ?? 0);
-  const saving = create.isPending || update.isPending;
+  const upload = useUploadImages();
+  const [photos, setPhotos] = useState<File[]>([]); // only used when adding a new venue
+  const saving = create.isPending || update.isPending || upload.isPending;
 
   const {
     register,
@@ -42,12 +48,38 @@ export function VenueForm({ venue }: { venue?: Venue }) {
     },
   });
 
-  function onSubmit(values: VenueFormValues) {
-    const input = toVenueInput(values);
-    const onError = (error: unknown) => applyServerError(error, setError, [...FIELDS]);
+  // Adding a venue with photos takes two requests: the venue must exist before photos can be attached to it.
+  // If the second one fails the venue is already saved, so we do not start over: we send the owner to the
+  // Details tab, where the same photos can be added again.
+  async function createWithPhotos(values: VenueFormValues) {
+    let created: Venue;
+    try {
+      created = await create.mutateAsync(toVenueInput(values));
+    } catch (error) {
+      applyServerError(error, setError, [...FIELDS]);
+      return;
+    }
 
+    if (photos.length === 0) {
+      router.push(`/owner/venues/${created.id}/slots`); // the next thing an owner needs is slots
+      return;
+    }
+
+    try {
+      await upload.mutateAsync({ venueId: created.id, files: photos });
+      router.push(`/owner/venues/${created.id}/slots`);
+    } catch (error) {
+      toast.error('Venue created, but the photos were not uploaded. Add them on this page.', {
+        description: getErrorMessage(error, 'Please try again.'),
+      });
+      router.push(`/owner/venues/${created.id}`);
+    }
+  }
+
+  function onSubmit(values: VenueFormValues) {
     if (venue) {
-      update.mutate(input, {
+      const onError = (error: unknown) => applyServerError(error, setError, [...FIELDS]);
+      update.mutate(toVenueInput(values), {
         onSuccess: (saved) => {
           toast.success('Venue saved');
           // the API cleans the city ("lAHore" -> "Lahore"): show what was really saved
@@ -56,11 +88,7 @@ export function VenueForm({ venue }: { venue?: Venue }) {
         onError,
       });
     } else {
-      create.mutate(input, {
-        // the next thing an owner needs is slots: take them there
-        onSuccess: (created) => router.push(`/owner/venues/${created.id}/slots`),
-        onError,
-      });
+      void createWithPhotos(values);
     }
   }
 
@@ -130,8 +158,15 @@ export function VenueForm({ venue }: { venue?: Venue }) {
         />
       </FormField>
 
+      {!venue && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Photos (optional)</p>
+          <ImagePicker files={photos} onChange={setPhotos} max={MAX_IMAGES} disabled={saving} firstIsCover />
+        </div>
+      )}
+
       <Button type="submit" disabled={saving || (!!venue && !isDirty)}>
-        {saving ? 'Saving…' : venue ? 'Save changes' : 'Create venue'}
+        {upload.isPending ? 'Uploading photos…' : saving ? 'Saving…' : venue ? 'Save changes' : 'Create venue'}
       </Button>
     </form>
   );

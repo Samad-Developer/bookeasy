@@ -1,7 +1,7 @@
 import { addDays } from 'date-fns';
 import { api } from '@/lib/api-client';
 import type { VenueSearch } from '@/features/venues/search-params';
-import type { Slot, Venue } from '@/features/venues/types';
+import type { Slot, Venue, VenueDetail } from '@/features/venues/types';
 
 // One function per backend endpoint. No React in this file, so it works in Server AND Client Components.
 
@@ -27,7 +27,7 @@ export async function listVenues(search: VenueSearch, limit = VENUES_PER_PAGE) {
 
 // GET /venues/:id  (the API answers 404 VENUE_NOT_FOUND for missing or deactivated venues)
 export async function getVenue(id: number) {
-  const response = await api.get<Venue>(`/venues/${id}`);
+  const response = await api.get<VenueDetail>(`/venues/${id}`);
   return response.data;
 }
 

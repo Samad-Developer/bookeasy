@@ -6,12 +6,15 @@ import {
   createSlot,
   createVenue,
   deleteSlot,
+  deleteVenueImage,
   getOwnerStats,
   listManagedSlots,
   listMyVenues,
   listVenueBookings,
+  reorderVenueImages,
   updateSlotPrice,
   updateVenue,
+  uploadVenueImages,
 } from '@/features/owner/api';
 import { getVenue } from '@/features/venues/api';
 import { getErrorMessage } from '@/lib/api-client';
@@ -128,6 +131,37 @@ export function useDeleteSlot() {
     mutationFn: deleteSlot,
     onSuccess: () => toast.success('Slot deleted'),
     onError: (error) => toast.error(getErrorMessage(error, 'Could not delete this slot.')),
+    onSettled: refresh,
+  });
+}
+
+// ── photos ──────────────────────────────────────────────────────────────────
+// The venue id is part of the variables (not of the hook), because on the "Add a venue" screen
+// the id only exists AFTER the venue was created. The screens show their own success messages.
+
+export function useUploadImages() {
+  const refresh = useRefreshEverything();
+  return useMutation({
+    mutationFn: ({ venueId, files }: { venueId: number; files: File[] }) => uploadVenueImages(venueId, files),
+    onSettled: refresh,
+  });
+}
+
+export function useDeleteImage() {
+  const refresh = useRefreshEverything();
+  return useMutation({
+    mutationFn: ({ venueId, imageId }: { venueId: number; imageId: number }) => deleteVenueImage(venueId, imageId),
+    onSuccess: () => toast.success('Photo deleted'),
+    onError: (error) => toast.error(getErrorMessage(error, 'Could not delete this photo.')),
+    onSettled: refresh,
+  });
+}
+
+export function useReorderImages() {
+  const refresh = useRefreshEverything();
+  return useMutation({
+    mutationFn: ({ venueId, imageIds }: { venueId: number; imageIds: number[] }) => reorderVenueImages(venueId, imageIds),
+    onError: (error) => toast.error(getErrorMessage(error, 'Could not change the photo order.')),
     onSettled: refresh,
   });
 }

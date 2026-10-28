@@ -8,13 +8,13 @@ import { PageSpinner } from '@/components/shared/page-spinner';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/use-auth';
 import { useManagedVenue, useUpdateVenue } from '@/features/owner/hooks';
-import type { Venue } from '@/features/venues/types';
+import type { VenueDetail } from '@/features/venues/types';
 import { ApiError, getErrorMessage } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
 // The pages inside /owner/venues/[id] all need the venue, so the shell loads it ONCE
 // and hands it down. Any page below can call useManagedVenueContext().
-const VenueContext = createContext<Venue | null>(null);
+const VenueContext = createContext<VenueDetail | null>(null);
 
 export function useManagedVenueContext() {
   const venue = useContext(VenueContext);
@@ -74,7 +74,7 @@ function Problem({ title, text }: { title: string; text: string }) {
   );
 }
 
-function VenueHeader({ venue }: { venue: Venue }) {
+function VenueHeader({ venue }: { venue: VenueDetail }) {
   const pathname = usePathname();
   const update = useUpdateVenue(venue.id);
   const base = `/owner/venues/${venue.id}`;

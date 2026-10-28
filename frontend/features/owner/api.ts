@@ -1,7 +1,7 @@
 import { api } from '@/lib/api-client';
 import type { Booking, BookingFilter } from '@/features/bookings/types';
 import type { OwnerStats } from '@/features/owner/types';
-import type { Slot, Venue } from '@/features/venues/types';
+import type { Slot, Venue, VenueImage } from '@/features/venues/types';
 
 // One function per owner endpoint. No React in this file.
 
@@ -81,4 +81,27 @@ export async function listVenueBookings(venueId: number, options: { status: Book
     bookings: response.data,
     pagination: pageInfo(response.meta, options.page, VENUE_BOOKINGS_PER_PAGE, response.data.length),
   };
+}
+
+// ── photos ──────────────────────────────────────────────────────────────────
+// All three answer with the venue's full, ordered photo list, so the screen can simply show what came back.
+
+// POST /venues/:id/images   (multipart/form-data, field name "images")
+export async function uploadVenueImages(venueId: number, files: File[]) {
+  const form = new FormData();
+  for (const file of files) form.append('images', file);
+  const response = await api.post<VenueImage[]>(`/venues/${venueId}/images`, form);
+  return response.data;
+}
+
+// DELETE /venues/:id/images/:imageId
+export async function deleteVenueImage(venueId: number, imageId: number) {
+  const response = await api.delete<VenueImage[]>(`/venues/${venueId}/images/${imageId}`);
+  return response.data;
+}
+
+// PATCH /venues/:id/images/order   (every image id, in the new order; the first one is the cover)
+export async function reorderVenueImages(venueId: number, imageIds: number[]) {
+  const response = await api.patch<VenueImage[]>(`/venues/${venueId}/images/order`, { imageIds });
+  return response.data;
 }
