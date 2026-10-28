@@ -1,7 +1,8 @@
 import { AppError } from '../../shared/errors/app-error.ts';
-import type { AuthUser } from '../../shared/types/express.d.ts';
+import type { AuthUser } from '../../shared/types/express.ts';
 import type { CreateVenueInput, ListVenuesQuery, PaginationQuery, UpdateVenueInput } from './venue.schema.ts';
 import * as repo from './venue.repository.ts';
+import { findImagesOfVenue } from '../venue-images/venue-image.repository.ts';
 import type { Venue } from './venue.types.ts';
 
 export const canManage = (user: AuthUser | undefined, venue: Venue) =>
@@ -34,7 +35,8 @@ export async function getVenue(id: number, viewer?: AuthUser) {
   if (!venue || (!venue.isActive && !canManage(viewer, venue))) {
     throw new AppError(404, 'VENUE_NOT_FOUND', 'Venue not found');
   }
-  return venue;
+  // the detail page also needs every photo, not only the cover
+  return { ...venue, images: await findImagesOfVenue(id) };
 }
 
 export async function updateVenue(id: number, user: AuthUser, changes: UpdateVenueInput) {

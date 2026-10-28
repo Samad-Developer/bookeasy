@@ -7,7 +7,12 @@ import type { VenueRow } from './venue.types.ts';
 type Db = Pool | PoolClient;
 
 // We list the columns instead of using * so the big `search` column is never sent
-const VENUE_COLUMNS = 'id, owner_id, name, description, category, city, address, capacity, is_active, created_at';
+// The cover photo and the photo count come from small sub-queries, so one venue stays one row.
+const VENUE_COLUMNS = `venues.id, venues.owner_id, venues.name, venues.description, venues.category, venues.city,
+  venues.address, venues.capacity, venues.is_active, venues.created_at,
+  (SELECT vi.url FROM venue_images vi WHERE vi.venue_id = venues.id ORDER BY vi.position, vi.id LIMIT 1) AS cover_image_url,
+  (SELECT vi.thumb_url FROM venue_images vi WHERE vi.venue_id = venues.id ORDER BY vi.position, vi.id LIMIT 1) AS cover_thumb_url,
+  (SELECT count(*)::int FROM venue_images vi WHERE vi.venue_id = venues.id) AS image_count`;
 
 export async function insertVenue(ownerId: number, data: CreateVenueInput, db: Db = pool) {
   const { rows } = await db.query<VenueRow>(
@@ -104,7 +109,10 @@ export async function findVenues(filters: Filters, page: number, limit: number, 
   const { where, params, searchParam } = buildWhere(filters);
 
   // Best match first when searching; newest first otherwise
-  const orderBy = searchParam === undefined ? 'ORDER BY id DESC' : `ORDER BY ts_rank(search, plainto_tsquery('english', $${searchParam})) DESC, id DESC`;
+  const orderBy =
+    searchParam === undefined
+      ? 'ORDER BY id DESC'
+      : `ORDER BY ts_rank(search, plainto_tsquery('english', $${searchParam})) DESC, id DESC`;
 
   // Two separate queries so `total` is correct even when the requested page is past the end
   const listParams = [...params, limit, (page - 1) * limit];

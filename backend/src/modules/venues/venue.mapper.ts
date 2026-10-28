@@ -1,5 +1,7 @@
-import type { Venue, VenueRow } from "./venue.types.ts";
+import type { Venue, VenueRow } from './venue.types.ts';
 
+// The ONLY place that knows database column names (snake_case).
+// Everything outside the repository works with the clean `Venue` shape.
 export const toVenue = (row: VenueRow): Venue => ({
   id: row.id,
   ownerId: row.owner_id,
@@ -11,4 +13,7 @@ export const toVenue = (row: VenueRow): Venue => ({
   capacity: row.capacity,
   isActive: row.is_active,
   createdAt: row.created_at,
+  coverImageUrl: row.cover_image_url,
+  coverThumbUrl: row.cover_thumb_url,
+  imageCount: row.image_count,
 });

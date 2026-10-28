@@ -11,6 +11,7 @@ import { requestId } from './shared/middleware/request-id.ts';
 import { requestLogger } from './shared/middleware/request-logger.ts';
 import { authRouter } from './modules/auth/auth.routes.ts';
 import { venueRouter } from './modules/venues/venue.routes.ts';
+import { venueImageRouter } from './modules/venue-images/venue-image.routes.ts';
 import { slotRouter } from './modules/slots/slot.routes.ts';
 import { bookingRouter } from './modules/bookings/booking.routes.ts';
 import { statsRouter } from './modules/stats/stats.routes.ts';
@@ -41,6 +42,7 @@ app.get('/health', async (req, res) => {
 
 app.use('/auth', authRouter);
 app.use('/venues', venueRouter);
+app.use('/venues', venueImageRouter);
 app.use(slotRouter);
 app.use(bookingRouter);
 app.use('/stats', statsRouter);

@@ -20,6 +20,15 @@ const schema = z.object({
   RATE_LIMIT_LOGIN_MAX: z.coerce.number().int().min(1).default(10),
   // Signups allowed per IP per hour
   RATE_LIMIT_SIGNUP_MAX: z.coerce.number().int().min(1).default(20),
+  // Photo storage: any S3-compatible bucket (Supabase Storage, Cloudflare R2, AWS S3 ...).
+  // The first five must be set together; when they are missing the API still starts,
+  // and photo uploads answer 503 STORAGE_NOT_CONFIGURED.
+  STORAGE_ENDPOINT: z.string().url().optional(), // Supabase: https://<project-ref>.storage.supabase.co/storage/v1/s3
+  STORAGE_ACCESS_KEY_ID: z.string().min(1).optional(),
+  STORAGE_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  STORAGE_BUCKET: z.string().min(1).optional(),
+  STORAGE_PUBLIC_URL: z.string().url().optional(), // the public address of the bucket (no trailing slash needed)
+  STORAGE_REGION: z.string().min(1).default('auto'), // Supabase: the region of your project, e.g. ap-south-1. R2: leave out.
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
