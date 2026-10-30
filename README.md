@@ -3,7 +3,7 @@
 A full-stack venue booking platform. Customers find a venue and book a time slot, owners manage their venues and bookings, and admins oversee the platform. Prices are in PKR.
 
 **Live demo:** _coming soon_  
-**API docs / Postman collection:** _optional, add a link here_
+**API docs / Postman collection:
 
 ![BookEasy home page](docs/screenshots/home.png)
 
